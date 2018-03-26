@@ -1,6 +1,7 @@
 define(function (require, exports, module) {
     "use strict";
     
+    // Load dependent modules.
     var QuickOpen           = require("search/QuickOpen"),
         QuickOpenHelper     = require("search/QuickOpenHelper"),
         Commands            = require("command/Commands"),
@@ -9,8 +10,15 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         EditorManager       = require("editor/EditorManager");
     
+    // Object that has list of doc type and their providers.
     var relatedFilesProviders    = { "all" : [] };
         
+    /**
+    * Register provider for related files.
+    * @param {Object} Provider object that has information about 
+    * @param {Array} Array of doc types supported by related files provider.
+    * @param {number} Specifies priority.
+    **/
     function registerRelatedFilesProvider(providerInfo, languageIds, priority) {
         var providerObj = {
             provider: providerInfo,
@@ -46,8 +54,10 @@ define(function (require, exports, module) {
         return (relatedFilesProviders[languageId] || relatedFilesProviders['all']);
     }
     
-    
-     function doRelatedFilesSearch() {
+    /**
+    * Get the view to dispaly related files when searched with prefix "#".
+    **/
+    function doRelatedFilesSearch() {
         if (DocumentManager.getCurrentDocument()) {
             var currentEditor = EditorManager.getActiveEditor();
             var selectedText = (currentEditor && currentEditor.getSelectedText()) || "";
@@ -58,7 +68,8 @@ define(function (require, exports, module) {
     function match(query) {
         return (query[0] === "#" && this.name === "Related files");
     }
-    
+        
+    // Add plugin for related files.
     function addRelatedFilesPlugin() {
         var search = _getProvidersForLanguageIds("html")[0];
         QuickOpen.addQuickOpenPlugin({
@@ -71,6 +82,7 @@ define(function (require, exports, module) {
     });
     }
     
+    // Register realted files command.
     CommandManager.register(Strings.CMD_GOTO_RELATED_FILES, Commands.NAVIGATE_GOTO_RELATED_FILES, doRelatedFilesSearch);
     
     exports.registerRelatedFilesProvider = registerRelatedFilesProvider;

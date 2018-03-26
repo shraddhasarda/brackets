@@ -24,6 +24,7 @@
 define(function (require, exports, module) {
     'use strict';
     
+    // Load dependent modules.
     var DocumentManager     = brackets.getModule("document/DocumentManager"),
      	Filesystem          = brackets.getModule("filesystem/FileSystem"),
         RelatedFilesManager = brackets.getModule("search/RelatedFilesManager"),
@@ -32,8 +33,19 @@ define(function (require, exports, module) {
         StringMatch         = brackets.getModule("utils/StringMatch"),
         PathUtils           = brackets.getModule("thirdparty/path-utils/path-utils");
 
-    var relatedFiles = [];
+    /**
+    * @private
+    * 
+    * Used to keep track of list of Related Files for a given document.
+    *
+    **/
+    var relatedFiles;
     
+    /**
+    * Parse the current document to find out dependencies in link and script tags.
+    * Identify whether a link is for local file or is a remote link.
+    * Store all related files link in relatedFiles variable.
+    **/
     function parseHTML()
     {
         var currentDocument = DocumentManager.getCurrentDocument();
@@ -47,6 +59,7 @@ define(function (require, exports, module) {
             
         	var i, fileURI, searchResult;
 			
+            // Search for href in link tag to get related file.
             for (i = 0; i < linkTags.length; i++) {
                 var linkHref = linkTags[i].getAttribute("href");
                 if (linkHref !== null) {
@@ -65,6 +78,7 @@ define(function (require, exports, module) {
                     }
                 }
             }    
+            // Search for src in script tag to get related files.
             for (i = 0; i < scriptTags.length; i++) {
                 var scriptSrc = scriptTags[i].getAttribute("src");
                 if (scriptSrc !== null) {
@@ -86,11 +100,21 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+    * Check whether a given string is remote url.
+    * @param {string} tagurl The url which is to be checked for remote link.
+    * @returns {Boolean} true if the url matches regular expression for remote url.
+    **/
 	function isRemoteURL(tagurl) {
 		var pattern = RegExp('^((http|https|ftp)?:?\/\/)');
         return pattern.test(tagurl); 
 	} 
     
+    /**
+    * Create a SearchResult object which has path information about the local file.
+    * @params {string} tagurl The url from which file path information is to be extracted.
+    * @returns {Object} SearchResult object which has file path information.
+    **/
     function getLinkFromLocalURL(tagurl) {
         var searchResult = new StringMatch.SearchResult (tagurl);
         var file = Filesystem.getFileForPath(tagurl);
@@ -104,6 +128,11 @@ define(function (require, exports, module) {
         return searchResult;
     }
     
+    /**
+    * Create a SearchResult object which has path information about the remote file url.
+    * @params {string} tagurl The url from which file path information is to be extracted.
+    * @returns {Object} SearchResult object which has remote link path information.
+    **/
     function getLinkFromRemoteURL (tagurl) {
         var regex = /:\/\/(.[^/]+)/;
         var url = regex.exec(tagurl);
@@ -122,6 +151,12 @@ define(function (require, exports, module) {
         return null;
     }
 
+    /**
+    * Create abosulte path for a file from relative path.
+    * @params {string} base Path of the current document.
+    * @params {string} relative Relative path of a file which is to be converted to absolute path.
+    * @returns {string} Absolute path of the given relative path with calculated wrt base.
+    **/
     function getAbsoultePath(base, relative) {
         var baseUrl = base.split("/"),
             relativeUrl = relative.split("/");
@@ -145,6 +180,10 @@ define(function (require, exports, module) {
         
     }
     
+    /**
+    * Gets list of realted files.
+    * @returns {List} List of realted files.
+    **/
     RelatedFiles.prototype.getRelatedFiles = function() {        
         relatedFiles = [];
         parseHTML();   
@@ -152,5 +191,7 @@ define(function (require, exports, module) {
     };
 
     var relatedFiles = new RelatedFiles();
+    
+    // Register Related files provider for HTML document.
     RelatedFilesManager.registerRelatedFilesProvider(relatedFiles, ['html'], 0);
 });
