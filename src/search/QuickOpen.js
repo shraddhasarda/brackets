@@ -44,7 +44,6 @@ define(function (require, exports, module) {
         LanguageManager     = require("language/LanguageManager"),
         ModalBar            = require("widgets/ModalBar").ModalBar,
         QuickSearchField    = require("search/QuickSearchField").QuickSearchField,
-        RelatedFilesManager = require("search/RelatedFilesManager"),
         StringMatch         = require("utils/StringMatch");
 
 
@@ -283,7 +282,7 @@ define(function (require, exports, module) {
             self = this;
 
         // Delegate to current plugin
-        if (currentPlugin && query !== "#") {
+        if (currentPlugin  && query !== "#") {
             currentPlugin.itemSelect(selectedItem, query);
         } else {
             // Extract line/col number, if any
@@ -629,7 +628,7 @@ define(function (require, exports, module) {
                 dialogLabel = Strings.CMD_GOTO_DEFINITION + "\u2026";
                 break;
              case "#":
-                dialogLabel = Strings.CMD_GOTO_RELATED_FILES + "\u2026";
+                dialogLabel = Strings.CMD_FIND_RELATED_FILES + "\u2026";
                 break;
             default:
                 dialogLabel = "";

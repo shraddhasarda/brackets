@@ -25,12 +25,13 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules.
-    var DocumentManager     = brackets.getModule("document/DocumentManager"),
+    var AppInit             = brackets.getModule("utils/AppInit"),
+        DocumentManager     = brackets.getModule("document/DocumentManager"),
      	Filesystem          = brackets.getModule("filesystem/FileSystem"),
-        RelatedFilesManager = brackets.getModule("search/RelatedFilesManager"),
         CommandManager      = brackets.getModule("command/CommandManager"),
         Commands            = brackets.getModule("command/Commands"),
         StringMatch         = brackets.getModule("utils/StringMatch"),
+        RelatedFilesManager = brackets.getModule("search/RelatedFilesManager"),
         PathUtils           = brackets.getModule("thirdparty/path-utils/path-utils");
 
     /**
@@ -190,8 +191,12 @@ define(function (require, exports, module) {
         return relatedFiles;
     };
 
-    var relatedFiles = new RelatedFiles();
+    AppInit.appReady(function () {
+        var relatedFiles = new RelatedFiles();
     
-    // Register Related files provider for HTML document.
-    RelatedFilesManager.registerRelatedFilesProvider(relatedFiles, ['html'], 0);
+        // Register Related files provider for HTML document.
+        RelatedFilesManager.registerRelatedFilesProvider(relatedFiles, ['html'], 0);
+    
+        exports.relatedFiles = relatedFiles;
+    });
 });

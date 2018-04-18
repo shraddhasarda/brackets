@@ -3,7 +3,6 @@ define(function (require, exports, module) {
     
     // Load dependent modules.
     var QuickOpen           = require("search/QuickOpen"),
-        QuickOpenHelper     = require("search/QuickOpenHelper"),
         Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
@@ -68,6 +67,42 @@ define(function (require, exports, module) {
     function match(query) {
         return (query[0] === "#" && this.name === "Related files");
     }
+    
+    function itemFocus(selectedItem, query, explicit) {
+        var cursorPos = extractCursorPos(query);
+
+        var doClose = true,
+            self = this;
+        
+            // Navigate to file and line number
+            var fullPath = selectedItem && selectedItem.fullPath;
+            if (fullPath) {
+                CommandManager.execute(Commands.CMD_OPEN, {fullPath: fullPath});
+            }
+    }
+    var CURSOR_POS_EXP = new RegExp(":([^,]+)?(,(.+)?)?");
+    
+    function extractCursorPos(query) {
+        var regInfo = query.match(CURSOR_POS_EXP);
+
+        if (query.length <= 1 || !regInfo ||
+                (regInfo[1] && isNaN(regInfo[1])) ||
+                (regInfo[3] && isNaN(regInfo[3]))) {
+
+            return null;
+        }
+
+        return {
+            query:  regInfo[0],
+            local:  query[0] === ":",
+            line:   regInfo[1] - 1 || 0,
+            ch:     regInfo[3] - 1 || 0
+        };
+    }
+    
+    function itemSelect(selectedItem, query) {
+        itemFocus(selectedItem, query, true);
+    }
         
     // Add plugin for related files.
     function addRelatedFilesPlugin() {
@@ -77,13 +112,13 @@ define(function (require, exports, module) {
             languageIds: ["html"],
             search: search.provider.getRelatedFiles,
             match: match,
-            itemFocus: QuickOpenHelper.itemFocus,
-            itemSelect: QuickOpenHelper.itemSelect
+            itemFocus: QuickOpen.itemFocus,
+            itemSelect: QuickOpen.itemSelect
     });
     }
     
     // Register realted files command.
-    CommandManager.register(Strings.CMD_GOTO_RELATED_FILES, Commands.NAVIGATE_GOTO_RELATED_FILES, doRelatedFilesSearch);
+    CommandManager.register(Strings.CMD_FIND_RELATED_FILES, Commands.NAVIGATE_GOTO_RELATED_FILES, doRelatedFilesSearch);
     
     exports.registerRelatedFilesProvider = registerRelatedFilesProvider;
 });
