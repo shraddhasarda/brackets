@@ -13,14 +13,20 @@ define(function (require, exports, module) {
     var absPathPrefix = (brackets.platform === "win" ? "c:/" : "/");
     var testWindow, testDocument;
     
+    var testObj = [
+        [absPathPrefix + "_unitTestDummyPath_" + "/index.css", "index.css", "true", false],
+        [absPathPrefix + "_unitTestDummyPath_" + "/css/bootstrap-4.0.0.css", "bootstrap-4.0.0.css", true, false],
+        ["https://code.jquery.com/jquery-3.3.1.js", "code.jquery.com", false, true],
+        ["http://www.google.com", "www.google.com", false, true]
+    ];
+    
     describe("RealtedFiles", function () {
         beforeEach(function () {
-            var mock = SpecRunnerUtils.createMockEditor(testHtmlContent, "html");
-            testDocument = mock.doc;
-            
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
             testWindow = w;
             });
+            var mock = SpecRunnerUtils.createMockEditor(testHtmlContent, "html");
+            testDocument = mock.doc;
         });
             
         afterEach(function () {
@@ -28,61 +34,22 @@ define(function (require, exports, module) {
             testWindow = null;
         });
         
-        
         // Creates object for expected output of test.html file.
         function createExpetcedSearchResults() {
             var expectedFiles = [];
-            var searchResult = new StringMatch.SearchResult (absPathPrefix + "_unitTestDummyPath_" + "/index.css");
-            searchResult.label = "index.css";
-            searchResult.fullPath = absPathPrefix + "_unitTestDummyPath_" + "/index.css";
-            searchResult.stringRanges = [{
-                text: absPathPrefix + "_unitTestDummyPath_" + "/index.css",
-                matched: false,
-                includesLastSegment: true
-            }];
-            expectedFiles.push(searchResult);
             
-            searchResult = new StringMatch.SearchResult (absPathPrefix + "_unitTestDummyPath_" + "/css/bootstrap-4.0.0.css");
-            searchResult.label = "bootstrap-4.0.0.css";
-            searchResult.fullPath = absPathPrefix + "_unitTestDummyPath_" + "/css/bootstrap-4.0.0.css";
-            searchResult.stringRanges = [{
-                text: absPathPrefix + "_unitTestDummyPath_" + "/css/bootstrap-4.0.0.css",
-                matched: false,
-                includesLastSegment: true
-            }];
-            expectedFiles.push(searchResult);
-            
-            searchResult = new StringMatch.SearchResult ("C:/Users/sarda/Desktop/Animate1.html");
-            searchResult.label = "Animate1.html";
-            searchResult.fullPath = "C:/Users/sarda/Desktop/Animate1.html";
-            searchResult.stringRanges = [{
-                text: "C:/Users/sarda/Desktop/Animate1.html",
-                matched: false,
-                includesLastSegment: true
-            }];
-            expectedFiles.push(searchResult);
-            
-            searchResult = new StringMatch.SearchResult ("https://code.jquery.com/jquery-3.3.1.js");
-            searchResult.label = "code.jquery.com";
-            searchResult.fullPath = "https://code.jquery.com/jquery-3.3.1.js";
-            searchResult.stringRanges = [{
-                text: "https://code.jquery.com/jquery-3.3.1.js",
-                matched: false,
-                includesLastSegment: false,
-                includesFirstSegment: true
-            }];
-            expectedFiles.push(searchResult);
-            
-            searchResult = new StringMatch.SearchResult ("http://www.google.com");
-            searchResult.label = "www.google.com";
-            searchResult.fullPath = "http://www.google.com";
-            searchResult.stringRanges = [{
-                text: "http://www.google.com",
-                matched: false,
-                includesLastSegment: false,
-                includesFirstSegment: true
-            }];
-            expectedFiles.push(searchResult);
+            for (var i = 0; i < testObj.length; i++){
+                var searchResult = new StringMatch.SearchResult (testObj[i][0]);
+                searchResult.fullPath = testObj[i][0];
+                searchResult.label = testObj[i][1];
+                searchResult.stringRanges = [{
+                    text: testObj[i][0],
+                    matched: false,
+                    includesLastSegment: testObj[i][2],
+                    includesFirstSegment: testObj[i][3]
+                }];
+                expectedFiles.push(searchResult);
+            }
             
             return expectedFiles;
         }
@@ -90,7 +57,7 @@ define(function (require, exports, module) {
         describe ("test parseHTML", function () {
             spyOn(DocumentManager, "getCurrentDocument").andReturn(testDocument);
 
-            // Test to see if the given html (test.html) is parsed properly.
+            // Test to see if the given html (test.html) is parsed as expected. It compares the output of this file with expected output. 
             it("should parse given html", function() {
                 var expectedOutput = createExpetcedSearchResults();
                 var actualOutput = RelatedFiles.relatedFiles.getRelatedFiles();
